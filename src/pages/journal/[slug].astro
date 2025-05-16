@@ -1,0 +1,82 @@
+---
+import { getCollection, getEntryBySlug } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const journalEntries = await getCollection('journal');
+  return journalEntries.map(entry => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
+}
+
+interface Props {
+  entry: CollectionEntry<'journal'>;
+}
+import type { CollectionEntry } from 'astro:content';
+
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+---
+<BaseLayout title={entry.data.title}>
+  <article class="journal-post">
+    <p class="publish-date">
+      Published on:
+      <time datetime={entry.data.pubDate.toISOString()}>
+        {entry.data.pubDate.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })}
+      </time>
+    </p>
+    {entry.data.description && <p class="description-full"><em>{entry.data.description}</em></p>}
+
+    <div class="journal-content">
+      <Content />
+    </div>
+  </article>
+
+  <p class="back-link">
+    <a href="/ursp/journal">← Back to all journal entries</a>
+  </p>
+
+  <style>
+    .journal-post {
+      padding-bottom: 1rem;
+    }
+    .publish-date {
+      color: #555;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+    .description-full {
+        font-size: 1.1rem;
+        color: #444;
+        margin-bottom: 1.5rem;
+        border-left: 3px solid #eee;
+        padding-left: 1rem;
+    }
+    .journal-content {
+      line-height: 1.7;
+    }
+    .journal-content h1, .journal-content h2, .journal-content h3 {
+      margin-top: 2em;
+      margin-bottom: 0.8em;
+    }
+    .journal-content p {
+      margin-bottom: 1.2em;
+    }
+    .back-link {
+        margin-top: 2rem;
+        font-size: 0.9rem;
+    }
+    .back-link a {
+        text-decoration: none;
+        color: #007bff;
+    }
+    .back-link a:hover {
+        text-decoration: underline;
+    }
+  </style>
+</BaseLayout>

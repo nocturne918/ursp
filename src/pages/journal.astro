@@ -1,0 +1,67 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const journalEntries = await getCollection('journal', ({ data }) => {
+  return true;
+});
+
+const sortedEntries = journalEntries.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+<BaseLayout title="Journal">
+  <p>Welcome to my URSP journal. Here are my thoughts, reflections, and progress updates.</p>
+  <hr>
+  {sortedEntries.length === 0 && <p>No journal entries yet.</p>}
+
+  {sortedEntries.map(async (entry) => {
+    const { Content } = await entry.render();
+    return (
+      <article class="journal-entry">
+        <h2><a href={`/ursp/journal/${entry.slug}/`}>{entry.data.title}</a></h2>
+        <p class="date">
+          <time datetime={entry.data.pubDate.toISOString()}>
+            {entry.data.pubDate.toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+          </time>
+        </p>
+        {entry.data.description && <p class="description">{entry.data.description}</p>}
+        <a href={`/ursp/journal/${entry.slug}/`}>Read more...</a>
+        <hr class="entry-separator" />
+      </article>
+    )
+  })}
+
+  <style>
+    .journal-entry {
+      margin-bottom: 2rem;
+    }
+    .journal-entry h2 {
+      margin-bottom: 0.5rem;
+    }
+    .journal-entry h2 a {
+      text-decoration: none;
+      color: #333;
+    }
+    .journal-entry h2 a:hover {
+      text-decoration: underline;
+    }
+    .date {
+      color: #666;
+      font-size: 0.9em;
+      margin-bottom: 0.5rem;
+    }
+    .description {
+      font-style: italic;
+      margin-bottom: 0.75rem;
+    }
+    .entry-separator {
+      border: 0;
+      height: 1px;
+      background: #eee;
+      margin-top: 2rem;
+    }
+  </style>
+</BaseLayout>
